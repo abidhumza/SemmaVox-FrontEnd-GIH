@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "SummaVox",
+  "version": "1.0",
+  "description": "Summarize and read aloud web content.",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content.js"
+      ]
+    }
+  ]
+}
