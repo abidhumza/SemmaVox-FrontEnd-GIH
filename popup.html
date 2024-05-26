@@ -10,12 +10,18 @@
     <h1>SummaVox</h1>
 
     <button id="summarizeButton">Summarize</button>
+    <div>
+        <input type="text" id="searchInput" placeholder="Enter keyword">
+        <button id="searchButton">Search</button>
+    </div>
     <div id="summary"></div>
 
     <button id="readAloudButton" style="display: none;" disabled>Read Aloud</button>
-    <button id="pauseButton">Pause</button>
-    <button id="resumeButton">Resume</button>
+    <button id="pauseButton" disabled>Pause</button>
+    <button id="resumeButton" disabled>Resume</button>
+    <button id="fastForwardButton">Fast Forward</button> <!-- Added fast forward button -->
     <select id="voiceSelect" disabled></select>
+    <button id="downloadButton" style="display: none;">Download Summary</button> <!-- Added download button -->
 
     <script src="popup.js"></script>
 </body>

@@ -15,7 +15,9 @@ h1 {
 }
 
 #summarizeButton,
-#readAloudButton {
+#readAloudButton,
+#downloadButton,
+#fastForwardButton {
     display: inline-block;
     margin: 10px 5px;
     padding: 10px 20px;
@@ -28,7 +30,11 @@ h1 {
 }
 
 #pauseButton,
-#resumeButton {
+#resumeButton,
+#downloadButton,
+#searchButton,
+#searchInput,
+#fastForwardButton {
     display: none;
     margin: 10px 5px;
     padding: 10px 20px;
@@ -43,22 +49,31 @@ h1 {
 #summarizeButton:hover,
 #readAloudButton:hover,
 #pauseButton:hover,
-#resumeButton:hover {
+#resumeButton:hover,
+#downloadButton:hover,
+#searchButton:hover,
+#fastForwardButton:hover {
     background-color: #0056b3;
 }
 
 #summary {
-    margin: 10px 0;
+    margin: 10px auto;
     padding: 10px;
     border: 1px solid #ccc;
     background: #f9f9f9;
-    width: 100%;
+    width: calc(100% - 20px);
     display: none;
     white-space: nowrap;
     overflow: auto;
     font-weight: 400;
     border-radius: 5px;
     text-align: left !important;
+    box-sizing: border-box;
+    line-height: 1.5;
+}
+
+#summary div {
+    margin-bottom: 10px;
 }
 
 #voiceSelect {
@@ -77,4 +92,15 @@ h1 {
 #voiceSelect option {
     background-color: #ffffff;
     color: #000;
+}
+
+.highlight {
+    background-color: yellow;
+    font-weight: bold;
+}
+
+#searchInput {
+    background-color: #ffffff;
+    color: #000;
+    border: 1px solid #007bff;
 }
