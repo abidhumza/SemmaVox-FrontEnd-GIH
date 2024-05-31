@@ -1,5 +1,6 @@
-const extractAndSummarize = () => {
-  const textContent = document.body.innerText;
-  const summary = textContent.split(" ").slice(0, 100).join(" ");
-  return summary;
-}
+const extractMainContent = () => {
+  const mainContentElement = document.body;
+  const mainContent = mainContentElement.innerText.trim();
+
+  return mainContent;
+};

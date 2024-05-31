@@ -12,58 +12,9 @@ const speakText = (text, voiceName, rate = 1) => {
   window.speechSynthesis.speak(utterance);
 };
 
-// Function to extract main content from the webpage
-const extractMainContent = () => {
-  let mainContent = "";
-
-  // Select main content element or fall back to the body
-  const mainContentElement = document.querySelector("main") || document.body;
-  const extractContent = mainContentElement.querySelectorAll(
-    "p, h1, h2, h3, h4, h5, h6"
-  );
-
-  // Extract text from selected elements
-  extractContent.forEach((element) => {
-    mainContent += element.innerText + " ";
-  });
-
-  // Extract sentences from main content
-  const extractSentences = (text) => text.match(/[^\.!\?]+[\.!\?]+/g) || [];
-  const sentences = extractSentences(mainContent);
-  const totalSentences = sentences.length;
-
-  // Minimum words required for summary
-  const minWords = 300;
-  let summaryWords = 0;
-  const summarySentences = [];
-
-  // Function to add sentence to summary
-  const addSentenceToSummary = (sentence, summaryArray) => {
-    summaryArray.push(sentence);
-    summaryWords += sentence.split(" ").length;
-  };
-
-  // Add key sentences from start, middle, and end
-  if (totalSentences > 0) addSentenceToSummary(sentences[0], summarySentences);
-  if (totalSentences > 4)
-    addSentenceToSummary(
-      sentences[Math.floor(totalSentences / 2)],
-      summarySentences
-    );
-  if (totalSentences > 1)
-    addSentenceToSummary(sentences[totalSentences - 1], summarySentences);
-
-  // Add random sentences to meet word count
-  while (summaryWords < minWords && summarySentences.length < totalSentences) {
-    const randomIndex = Math.floor(Math.random() * totalSentences);
-    const sentence = sentences[randomIndex];
-    if (!summarySentences.includes(sentence)) {
-      addSentenceToSummary(sentence, summarySentences);
-    }
-  }
-
-  // Format summary sentences as HTML div elements
-  return summarySentences.map((sentence) => `<div>${sentence}</div>`).join("");
+// Function to format text into a single paragraph
+const formatText = (text) => {
+  return text.replace(/\n/g, " ");
 };
 
 // Function called when summarize button is clicked
@@ -72,32 +23,60 @@ const onSummarizeClick = () => {
     chrome.scripting.executeScript(
       {
         target: { tabId: tabs[0].id },
-        func: extractMainContent,
+        func: () => {
+          return Array.from(document.querySelectorAll("p"))
+            .map((p) => p.innerText)
+            .join("\n");
+        },
       },
-      (results) => {
-        const summary = results[0].result;
-        const summaryDiv = document.getElementById("summary");
-        summaryDiv.innerHTML = summary;
-        summaryDiv.style.display = "block";
+      async (results) => {
+        const content = formatText(results[0].result);
+        console.log("Extracted content:", content); // Debugging
 
-        // Update UI elements visibility and state
-        document.getElementById("summarizeButton").style.display = "none";
-        document.getElementById("readAloudButton").disabled = false;
-        document.getElementById("readAloudButton").style.display =
-          "inline-block";
-        document.getElementById("voiceSelect").disabled = false;
-        document.getElementById("voiceSelect").style.display = "inline-block";
-        document.getElementById("pauseButton").disabled = false;
-        document.getElementById("resumeButton").disabled = false;
-        document.getElementById("pauseButton").style.display = "inline-block";
-        document.getElementById("resumeButton").style.display = "inline-block";
-        document.getElementById("fastForwardButton").disabled = false;
-        document.getElementById("fastForwardButton").style.display =
-          "inline-block";
-        document.getElementById("downloadButton").style.display =
-          "inline-block";
-        document.getElementById("searchButton").style.display = "inline-block";
-        document.getElementById("searchInput").style.display = "inline-block";
+        try {
+          const response = await fetch("http://127.0.0.1:3000/summarize", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ content: content }),
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+
+          const data = await response.json();
+          console.log("Response data:", data); // Debugging
+
+          const summaryDiv = document.getElementById("summary");
+          summaryDiv.innerHTML = data.summary;
+          summaryDiv.style.display = "block";
+
+          // Update UI elements visibility and state
+          document.getElementById("summarizeButton").style.display = "none";
+          document.getElementById("readAloudButton").disabled = false;
+          document.getElementById("readAloudButton").style.display =
+            "inline-block";
+          document.getElementById("voiceSelect").disabled = false;
+          document.getElementById("voiceSelect").style.display = "inline-block";
+          document.getElementById("pauseButton").disabled = false;
+          document.getElementById("resumeButton").disabled = false;
+          document.getElementById("pauseButton").style.display = "inline-block";
+          document.getElementById("resumeButton").style.display =
+            "inline-block";
+          document.getElementById("fastForwardButton").disabled = false;
+          document.getElementById("fastForwardButton").style.display =
+            "inline-block";
+          document.getElementById("downloadButton").style.display =
+            "inline-block";
+          document.getElementById("searchButton").style.display =
+            "inline-block";
+          document.getElementById("searchInput").style.display = "inline-block";
+        } catch (error) {
+          console.error("Error during fetch:", error); // Debugging
+          alert("There was an error fetching the summary. Please try again.");
+        }
       }
     );
   });
@@ -144,17 +123,24 @@ document.getElementById("downloadButton").addEventListener("click", () => {
 document.getElementById("searchButton").addEventListener("click", () => {
   const searchTerm = document.getElementById("searchInput").value.toLowerCase();
   const summaryDiv = document.getElementById("summary");
-  const divs = summaryDiv.querySelectorAll("div");
+  const summaryText = summaryDiv.innerText;
+
+  // Reset previous highlighting
+  summaryDiv.innerHTML = summaryText;
 
   // Highlight search term in summary
-  divs.forEach((div) => {
-    const text = div.innerText;
-    const highlightedText = text.replace(
-      new RegExp(searchTerm, "gi"),
-      (match) => `<span class="highlight">${match}</span>`
-    );
-    div.innerHTML = highlightedText;
-  });
+  const regex = new RegExp(searchTerm, "gi");
+  const matches = summaryText.match(regex);
+
+  if (matches) {
+    matches.forEach((match) => {
+      const replacedHTML = summaryDiv.innerHTML.replace(
+        new RegExp(match, "gi"),
+        `<span class="highlight">${match}</span>`
+      );
+      summaryDiv.innerHTML = replacedHTML;
+    });
+  }
 });
 
 // Function to download text content
